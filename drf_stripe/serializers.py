@@ -81,7 +81,7 @@ class CheckoutRequestSerializer(serializers.Serializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     def validate(self, attrs):
-        stripe_user = get_or_create_stripe_user(user_id=self.context['request'].user.id)
+        stripe_user = get_or_create_stripe_user(user_pk=self.context['request'].user.pk)
         try:
             checkout_session = stripe_api_create_checkout_session(
                 customer_id=stripe_user.customer_id,
