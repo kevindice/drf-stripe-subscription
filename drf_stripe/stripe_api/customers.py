@@ -35,21 +35,21 @@ def get_or_create_stripe_user(**kwargs) -> StripeUser:
     Get or create a StripeUser given a User instance, or given user id and user email.
 
     :key user_instance: Django user instance.
-    :key str user_id: Django User id.
+    :key str user_pk: Django User id.
     :key str user_email: user email address.
     :key str customer_id: Stripe customer id.
     """
     user_instance = kwargs.get("user_instance")
-    user_id = kwargs.get("user_id")
+    user_pk = kwargs.get("user_pk")
     user_email = kwargs.get("user_email")
     customer_id = kwargs.get("customer_id")
 
     if user_instance and isinstance(user_instance, get_user_model()):
         return _get_or_create_stripe_user_from_user_instance(user_instance)
-    elif user_id and user_email and isinstance(user_id, str):
-        return _get_or_create_stripe_user_from_user_id_email(user_id, user_email)
-    elif user_id is not None:
-        return _get_or_create_stripe_user_from_user_id(user_id)
+    elif user_pk and user_email and isinstance(user_pk, str):
+        return _get_or_create_stripe_user_from_user_pk_email(user_pk, user_email)
+    elif user_pk is not None:
+        return _get_or_create_stripe_user_from_user_pk(user_pk)
     elif customer_id is not None:
         return _get_or_create_stripe_user_from_customer_id(customer_id)
     else:
@@ -62,18 +62,18 @@ def _get_or_create_stripe_user_from_user_instance(user_instance):
 
     :param user_instance: Django User instance.
     """
-    return _get_or_create_stripe_user_from_user_id_email(user_instance.id, user_instance.email)
+    return _get_or_create_stripe_user_from_user_pk_email(user_instance.id, user_instance.email)
 
 
-def _get_or_create_stripe_user_from_user_id(user_id):
+def _get_or_create_stripe_user_from_user_pk(user_pk):
     """
-    Returns a StripeUser instance given user_id.
+    Returns a StripeUser instance given user_pk.
 
-    :param str user_id: user id
+    :param str user_pk: user id
     """
-    user = get_user_model().objects.get(id=user_id)
+    user = get_user_model().objects.get(pk=user_pk)
 
-    return _get_or_create_stripe_user_from_user_id_email(user.id, user.email)
+    return _get_or_create_stripe_user_from_user_pk_email(user.pk, user.email)
 
 
 def _get_or_create_stripe_user_from_customer_id(customer_id):
@@ -100,7 +100,7 @@ def _get_or_create_stripe_user_from_customer_id(customer_id):
         if created:
             print(f"Created new User with customer_id {customer_id}")
 
-    return _get_or_create_stripe_user_from_user_id_email(user.id, user.email, customer_id)
+    return _get_or_create_stripe_user_from_user_pk_email(user.pk, user.email, customer_id)
 
 
 def _get_or_create_django_user_if_configured(customer: StripeCustomer):
@@ -167,25 +167,25 @@ def get_or_create_stripe_user_from_customer(customer: StripeCustomer) -> StripeU
 
             print(f"Created new Django User with email address for Stripe customer_id {customer.id}")
 
-        stripe_user, stripe_user_created = StripeUser.objects.get_or_create(user_id=django_user.id, defaults={'customer_id': customer.id})
+        stripe_user, stripe_user_created = StripeUser.objects.get_or_create(user_pk=django_user.pk, defaults={'customer_id': customer.id})
         if not stripe_user_created and stripe_user.customer_id:
             # there's an existing StripeUser record for the Django User with the given customer's email address, but it already has a different customer_id.
             # (if the existing customer_id matched this one then this function would have already returned)
             # As there is a OneToOne relationship between DjangoUser and StripeUser we cannot create another record here, and we shouldn't assume it is
             # safe to replace the reference to the existing Stripe Customer. So raise an error.
-            raise ValueError(f"A StripeUser record already exists for Django user id '{django_user.id}' which references a different customer id - called with customer id '{customer.id}', existing db customer id: '{stripe_user.customer_id}'")
+            raise ValueError(f"A StripeUser record already exists for Django user id '{django_user.pk}' which references a different customer id - called with customer id '{customer.id}', existing db customer id: '{stripe_user.customer_id}'")
 
         return stripe_user
 
 
-def _get_or_create_stripe_user_from_user_id_email(user_id, user_email: str, customer_id: str = None):
+def _get_or_create_stripe_user_from_user_pk_email(user_pk, user_email: str, customer_id: str = None):
     """
-    Return a StripeUser instance given user_id and user_email.
+    Return a StripeUser instance given user_pk and user_email.
 
-    :param user_id: user id
+    :param user_pk: user id
     :param str user_email: user email address
     """
-    stripe_user, created = StripeUser.objects.get_or_create(user_id=user_id, customer_id=customer_id)
+    stripe_user, created = StripeUser.objects.get_or_create(user_pk=user_pk, customer_id=customer_id)
 
     if created and not customer_id:
         customer = _stripe_api_get_or_create_customer_from_email(user_email)

@@ -129,7 +129,7 @@ def _update_subscription_items(subscription_id, items_data):
 #         )
 
 
-def list_user_subscriptions(user_id, current=True) -> QuerySet[Subscription]:
+def list_user_subscriptions(user_pk, current=True) -> QuerySet[Subscription]:
     """
     Retrieve a set of Subscriptions associated with a given user id.
 
@@ -137,50 +137,50 @@ def list_user_subscriptions(user_id, current=True) -> QuerySet[Subscription]:
     :param bool current: Defaults to True and retrieves only current subscriptions
         (excluding any cancelled, ended, unpaid subscriptions)
     """
-    q = Q(stripe_user__user_id=user_id)
+    q = Q(stripe_user__user_pk=user_pk)
     if current is True:
         q &= Q(status__in=ACCESS_GRANTING_STATUSES)
 
     return Subscription.objects.filter(q)
 
 
-def list_user_subscription_items(user_id, current=True) -> QuerySet[SubscriptionItem]:
+def list_user_subscription_items(user_pk, current=True) -> QuerySet[SubscriptionItem]:
     """
     Retrieve a set of SubscriptionItems associated with user id
 
-    :param user_id: Django User is.
+    :param user_pk: Django User is.
     :param bool current: Defaults to True and retrieves only current subscriptions
         (excluding any cancelled, ended, unpaid subscriptions)
     """
-    q = Q(subscription__stripe_user__user_id=user_id)
+    q = Q(subscription__stripe_user__user_pk=user_pk)
     if current is True:
         q &= Q(subscription__status__in=ACCESS_GRANTING_STATUSES)
 
     return SubscriptionItem.objects.filter(q)
 
 
-def list_user_subscription_products(user_id, current=True):
+def list_user_subscription_products(user_pk, current=True):
     """
     Retrieve a set of Product instances associated with a given User instance.
 
-    :param user_id: Django User id.
+    :param user_pk: Django User id.
     :param bool current: Defaults to True and retrieves only products associated with current subscriptions
         (excluding any cancelled, ended, unpaid subscription products)
     """
-    subscriptions = list_user_subscriptions(user_id, current=current)
+    subscriptions = list_user_subscriptions(user_pk, current=current)
     sub_items = chain.from_iterable(
         sub.items.all() for sub in subscriptions.all().prefetch_related("items__price__product"))
     products = set(item.price.product for item in sub_items)
     return products
 
 
-def list_subscribable_product_prices_to_user(user_id):
+def list_subscribable_product_prices_to_user(user_pk):
     """
     Retrieve a set of Price instances associated with Products that the User isn't currently subscribed to.
 
-    :param user_id: Django user id.
+    :param user_pk: Django user id.
     """
-    current_products = set(map(attrgetter('product_id'), list_user_subscription_products(user_id)))
+    current_products = set(map(attrgetter('product_id'), list_user_subscription_products(user_pk)))
     prices = Price.objects.filter(
         Q(active=True) &
         Q(product__active=True) &

@@ -3,13 +3,13 @@ from .customers import get_or_create_stripe_user
 from ..settings import drf_stripe_settings
 
 
-def stripe_api_create_billing_portal_session(user_id):
+def stripe_api_create_billing_portal_session(user_pk):
     """
     Creates a Stripe Customer Portal Session.
 
-    :param str user_id: Django User id
+    :param str user_pk: Django User id
     """
-    stripe_user = get_or_create_stripe_user(user_id=user_id)
+    stripe_user = get_or_create_stripe_user(user_pk=user_pk)
 
     session = stripe.billing_portal.Session.create(
         customer=stripe_user.customer_id,
