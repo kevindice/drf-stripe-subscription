@@ -137,7 +137,7 @@ def list_user_subscriptions(user_pk, current=True) -> QuerySet[Subscription]:
     :param bool current: Defaults to True and retrieves only current subscriptions
         (excluding any cancelled, ended, unpaid subscriptions)
     """
-    q = Q(stripe_user__user_pk=user_pk)
+    q = Q(stripe_user__user__pk=user_pk)
     if current is True:
         q &= Q(status__in=ACCESS_GRANTING_STATUSES)
 
@@ -152,7 +152,7 @@ def list_user_subscription_items(user_pk, current=True) -> QuerySet[Subscription
     :param bool current: Defaults to True and retrieves only current subscriptions
         (excluding any cancelled, ended, unpaid subscriptions)
     """
-    q = Q(subscription__stripe_user__user_pk=user_pk)
+    q = Q(subscription__stripe_user__user__pk=user_pk)
     if current is True:
         q &= Q(subscription__status__in=ACCESS_GRANTING_STATUSES)
 

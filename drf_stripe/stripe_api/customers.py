@@ -62,7 +62,7 @@ def _get_or_create_stripe_user_from_user_instance(user_instance):
 
     :param user_instance: Django User instance.
     """
-    return _get_or_create_stripe_user_from_user_pk_email(user_instance.id, user_instance.email)
+    return _get_or_create_stripe_user_from_user_pk_email(user_instance.pk, user_instance.email)
 
 
 def _get_or_create_stripe_user_from_user_pk(user_pk):
@@ -167,7 +167,7 @@ def get_or_create_stripe_user_from_customer(customer: StripeCustomer) -> StripeU
 
             print(f"Created new Django User with email address for Stripe customer_id {customer.id}")
 
-        stripe_user, stripe_user_created = StripeUser.objects.get_or_create(user_pk=django_user.pk, defaults={'customer_id': customer.id})
+        stripe_user, stripe_user_created = StripeUser.objects.get_or_create(user__pk=django_user.pk, defaults={'customer_id': customer.id})
         if not stripe_user_created and stripe_user.customer_id:
             # there's an existing StripeUser record for the Django User with the given customer's email address, but it already has a different customer_id.
             # (if the existing customer_id matched this one then this function would have already returned)
@@ -185,7 +185,7 @@ def _get_or_create_stripe_user_from_user_pk_email(user_pk, user_email: str, cust
     :param user_pk: user id
     :param str user_email: user email address
     """
-    stripe_user, created = StripeUser.objects.get_or_create(user_pk=user_pk, customer_id=customer_id)
+    stripe_user, created = StripeUser.objects.get_or_create(user__pk=user_pk, customer_id=customer_id)
 
     if created and not customer_id:
         customer = _stripe_api_get_or_create_customer_from_email(user_email)
