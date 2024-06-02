@@ -185,7 +185,7 @@ def _get_or_create_stripe_user_from_user_pk_email(user_pk, user_email: str, cust
     :param user_pk: user id
     :param str user_email: user email address
     """
-    stripe_user, created = StripeUser.objects.get_or_create(user__pk=user_pk, customer_id=customer_id)
+    stripe_user, created = StripeUser.objects.get_or_create(user_id=user_pk, customer_id=customer_id)
 
     if created and not customer_id:
         customer = _stripe_api_get_or_create_customer_from_email(user_email)
