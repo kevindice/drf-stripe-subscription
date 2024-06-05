@@ -88,8 +88,8 @@ class CheckoutRequestSerializer(serializers.Serializer):
                 price_id=attrs['price_id'],
                 trial_end='auto' if stripe_user.subscription_items.count() == 0 else None
             )
-            attrs['session_id'] = checkout_session['id']
-            attrs['client_secret'] = checkout_session['client_secret']
+            attrs['session_id'] = checkout_session.id
+            attrs['client_secret'] = checkout_session.client_secret
         except StripeError as e:
             raise ValidationError(e.error)
         return attrs
