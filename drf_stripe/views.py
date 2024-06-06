@@ -59,7 +59,8 @@ class CreateStripeCheckoutSession(APIView):
         serializer = CheckoutRequestSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         return Response({'session_id': serializer.validated_data['session_id'],
-                         'client_secret': serializer.validated_data['client_secret']}, status=status.HTTP_200_OK)
+                         'client_secret': serializer.validated_data['client_secret'],
+                         'url': serializer.validated_data['url']}, status=status.HTTP_200_OK)
 
 
 class StripeWebhook(APIView):

@@ -90,6 +90,7 @@ class CheckoutRequestSerializer(serializers.Serializer):
             )
             attrs['session_id'] = checkout_session.id
             attrs['client_secret'] = checkout_session.client_secret
+            attrs['url'] = checkout_session.url
         except StripeError as e:
             raise ValidationError(e.error)
         return attrs

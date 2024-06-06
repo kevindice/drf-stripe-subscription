@@ -81,7 +81,8 @@ def _stripe_api_create_checkout_session_for_user(user_instance, **kwargs):
 def _make_stripe_checkout_params(
         customer_id: str, price_id: str = None, quantity: int = 1, line_items: List[dict] = None,
         trial_end: Union[str, datetime, None] = 'auto', discounts: List[dict] = None,
-        payment_method_types: List[str] = None, checkout_mode: str = drf_stripe_settings.DEFAULT_CHECKOUT_MODE
+        payment_method_types: List[str] = None, checkout_mode: str = drf_stripe_settings.DEFAULT_CHECKOUT_MODE,
+        ui_mode: str = drf_stripe_settings.DEFAULT_UI_MODE,
 ):
     if price_id is None and line_items is None:
         raise ValueError("Invalid arguments: must provide either a 'price_id' or 'line_items'.")
@@ -107,6 +108,7 @@ def _make_stripe_checkout_params(
         "cancel_url": cancel_url,
         "payment_method_types": payment_method_types,
         "mode": checkout_mode,
+        "ui_mode": ui_mode,
         "line_items": line_items,
         "subscription_data": {
             "trial_end": _make_trial_end_timestamp(trial_end=trial_end)
