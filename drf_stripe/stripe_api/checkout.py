@@ -122,6 +122,11 @@ def _make_stripe_checkout_params(
     else:
         params.update({"discounts": discounts if discounts else drf_stripe_settings.DEFAULT_DISCOUNTS})
 
+    if ui_mode == 'embedded':
+        params['return_url'] = params['success_url']
+        del params['success_url']
+        del params['cancel_url']
+
     return params
 
 
